@@ -39,7 +39,7 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 
 <strong>[2025/06/19]</strong>
 - 📖 The Blog that details our training recipe: [Notion]() and [Blog]()
-- 🔥 All training code, model weights, and data will be available in one week. 
+- ⏰ All training code, model weights, and data will be available in one week. 
 
 ## Running environment 
 ```bash
@@ -96,7 +96,7 @@ print(f"***QUESTION***:\n{question}\n***GROUND TRUTH***:\n{answer}\n***MODEL OUT
 ```
 
 
-## ⌚Training
+## Training
 ### Step1: Data preparation
 The [training data]() used in this work is filtered from [DeepScaleR-dataset-40K](https://huggingface.co/datasets/agentica-org/DeepScaleR-Preview-Dataset) and [AReaL-dataset-106K](https://huggingface.co/datasets/inclusionAI/AReaL-boba-Data).
 We provide the [parquet data]() which can be directly used in training. 
@@ -143,7 +143,7 @@ python train_with_ray.py  --model /path/to/hf/stage2-checkpoint --name Polaris-4
 ```
 
 
-## 📊Evaluation
+## Evaluation
 We recommend using a higher temperature for decoding than that suggested for Qwen3 (0.6 → 1.4). However, it is not advisable to exceed the temperature used during training. For POLARIS, a longer response length (> 64K) should be utilized to prevent performance degradation from truncation, which could otherwise cause its performance to fall below that of Qwen3. All other settings remain the same. 
 
 **Evaluation command based on verl**:
