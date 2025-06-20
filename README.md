@@ -32,8 +32,6 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 <img src="figs/aime25.png" width="70%" />
 </div>
 
------
-
 
 ## 🔥Releases
 
