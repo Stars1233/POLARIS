@@ -12,7 +12,7 @@
 <div align="center">
 
 [![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)](https://honorable-payment-890.notion.site/POLARIS-A-POst-training-recipe-for-scaling-reinforcement-Learning-on-Advanced-ReasonIng-modelS-1dfa954ff7c38094923ec7772bf447a1)
-[![Twitter](https://img.shields.io/badge/twitter-white?style=for-the-badge&logo=X&logoColor=000&color=000&labelColor=white)]()
+[![Twitter](https://img.shields.io/badge/twitter-white?style=for-the-badge&logo=X&logoColor=000&color=000&labelColor=white)](https://x.com/AnChancy46881/status/1936099024769368506)
 [![Hugging Face Model](https://img.shields.io/badge/models-%23000000?style=for-the-badge&logo=huggingface&logoColor=000&logoColor=white)](https://huggingface.co/POLARIS-Project/Polaris-4B-Preview)
 [![Hugging Face Data](https://img.shields.io/badge/data-%23000000?style=for-the-badge&logo=huggingface&logoColor=000&logoColor=white)](https://huggingface.co/datasets/POLARIS-Project/Polaris-Dataset-53K)
 [![Paper](https://img.shields.io/badge/Paper-%23000000?style=for-the-badge&logo=arxiv&logoColor=000&labelColor=white)]()
