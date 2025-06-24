@@ -55,7 +55,7 @@ unset VLLM_ATTENTION_BACKEND
 
 ```
 ## Demo
-```
+```python
 import torch
 from transformers import AutoTokenizer
 from vllm import SamplingParams, LLM
@@ -107,7 +107,7 @@ python scripts/data/polaris_dataset.py --jsonl_file data/jsonl_data/polaris-data
 ```
 ### Step2: Temperature searching for diversity rollouts
 Temperature searching is highly recommended before each stage of training as suggested by the `diversity-based rollouts sampling` section in our blog.
-```
+```bash
 # the following code will provide the optimal training temperature for you
 cd evaluation
 python search_optimal_temperature.py --start 0.6 (recommended decoding temperature by the model developers) --end 1.5 --step 0.1 --model /path/to/qwen3-4b (base model) --n 16 --new_tokens 50000
