@@ -34,12 +34,15 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 
 
 ## 🔥Releases
+<strong>[2025/06/27]</strong>
+- 🌌 Full training code and scripts are available. 
+- 🤗 We are training a smaller model `Qwen3-1.7B` with the open-source codebase. The training logs will be updated to enhance reproducibility.
+- ⌨️ Polaris-Coder is coming soon. Stay tuned!
 
 <strong>[2025/06/20]</strong>
 - 🧾 The Blog that details our training recipe: [Notion](https://honorable-payment-890.notion.site/POLARIS-A-POst-training-recipe-for-scaling-reinforcement-Learning-on-Advanced-ReasonIng-modelS-1dfa954ff7c38094923ec7772bf447a1) and [Blog](https://hkunlp.github.io/blog/2025/Polaris)
 - 🤗 Model weights: [Polaris-4B-Preview](https://huggingface.co/POLARIS-HKU/Polaris-4B-Preview) and  [Polaris-7B-Preview](https://huggingface.co/POLARIS-Project/Polaris-7B-Preview). Polaris-4B-Preview is fine-tuned from Qwen3-4B and Polaris-7B-Preview is fine-tuned from Deepseek-R1-Distill-Qwen-7B.
 - 📚 The filtered training dataset with difficulty distribution  [Polaris-Dataset-53K](https://huggingface.co/datasets/POLARIS-Project/Polaris-Dataset-53K)
-- ⏰ Full training code and training scripts will be available in one week. 
 
 ## Running environment 
 ```bash
@@ -96,63 +99,87 @@ print(f"***QUESTION***:\n{question}\n***GROUND TRUTH***:\n{answer}\n***MODEL OUT
 ```
 
 
-## Training
-### Step1: Data preparation
-The [training data](https://huggingface.co/datasets/POLARIS-Project/Polaris-Dataset-53K) used in this work is filtered from [DeepScaleR-dataset-40K](https://huggingface.co/datasets/agentica-org/DeepScaleR-Preview-Dataset) and [AReaL-dataset-106K](https://huggingface.co/datasets/inclusionAI/AReaL-boba-Data).
-We provide the [parquet data]() which can be directly used in training. 
-If your data is in `json` or `jsonl` format, please use the following cmd for converting it into the parquet format. 
-```bash
-# Generate parquet files for parquet_data/{jsonl_file_name}.parquet 
-python scripts/data/polaris_dataset.py --jsonl_file data/jsonl_data/polaris-data-53K.jsonl # => data/jsonl_data/polaris-data-53K.parquet
-```
-### Step2: Temperature searching for diversity rollouts
-Temperature searching is highly recommended before each stage of training as suggested by the `diversity-based rollouts sampling` section in our blog.
-```bash
-# the following code will provide the optimal training temperature for you
-cd evaluation
-python search_optimal_temperature.py --start 0.6 (recommended decoding temperature by the model developers) --end 1.5 --step 0.1 --model /path/to/qwen3-4b (base model) --n 16 --new_tokens 50000
-# after the searching process, run:
-python get_optimal_temperature.py  --start 0.6 --end 1.5 --step 0.1 --model /path/to/qwen3-4b (base model)
-```
-
-### Step3: Multi-stage Training
-The training scripts for Polaris that details are avaliable [here]()
-The training process for Polaris-4B-preview requires at least 4 nodes. 
-Our multi-node training is based on Ray. Please run the command on **all nodes**.
-
-#### Stage1-training 
-```bash
-# run ray stop if needed
-python train_with_ray.py  --model /path/to/qwen3-4b --name Polaris-4B-stage1 (your experiment name) --n_nodes 4  --head True/False (True for head node)  --sh ./scripts/train/polaris_4b_stage1_40k_t1.4.sh
-```
-
-#### Stage2-training
-```bash
-# convert the checkpoint after stage1-training to hf model
-python verl/scripts/model_merger.py --local_dir /path/to/checkpoints/global_step_XXX/actor --target_dir /path/to/hf/stage1-checkpoint
-# run ray stop if needed
-python train_with_ray.py  --model /path/to/hf/stage1-checkpoint --name Polaris-4B-stage2 --n_nodes 4  --head True/False   --sh ./scripts/train/polaris_4b_stage2_48k_t1.45.sh
-```
-
-#### Stage3-training 
-```bash
-# convert the checkpoint after stage1-training to hf model
-python verl/scripts/model_merger.py --local_dir /path/to/checkpoints/global_step_XXX/actor --target_dir /path/to/hf/stage2-checkpoint
-# run ray stop if needed
-python train_with_ray.py  --model /path/to/hf/stage2-checkpoint --name Polaris-4B-stage3 --n_nodes 4  --head True/False  --sh ./scripts/train/polaris_4b_stage3_52k_t1.5.sh
-```
-
-
 ## 📊Evaluation
 We recommend using a higher temperature for decoding than that suggested for Qwen3 (0.6 → 1.4). However, it is not advisable to exceed the temperature used during training. For POLARIS, a longer response length (> 64K) should be utilized to prevent performance degradation from truncation, which could otherwise cause its performance to fall below that of Qwen3. All other settings remain the same. 
 
 **Evaluation command based on verl**:
 ```bash
-./scripts/eval/eval_model_aime24.sh --model [CHECKPOINT_PATH]  --n 32 --max_length 90000  --t 1.4
-./scripts/eval/eval_model_aime25.sh --model [CHECKPOINT_PATH]  --n 32 --max_length 90000  --t 1.4 or 1.45
+./scripts/eval/eval_model_aime24.sh --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 
+./scripts/eval/eval_model_aime25.sh --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 or 1.45
+```
+**Grade the outputs**:
+```bash
+python evaluation/grade.py --file_name evaluation/results/aime24-reproduced.parquet # replace with your output file
 ```
 
-Example inference
+## Training
+### Data preparation
+The [training data](https://huggingface.co/datasets/POLARIS-Project/Polaris-Dataset-53K) used in this work is filtered from [DeepScaleR-dataset-40K](https://huggingface.co/datasets/agentica-org/DeepScaleR-Preview-Dataset) and [AReaL-dataset-106K](https://huggingface.co/datasets/inclusionAI/AReaL-boba-Data).
+We provide the [parquet data](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/parquet) which can be directly used in training. 
+If your data is in `json` or `jsonl` format, please use the following cmd for converting it into the parquet format. 
+```bash
+# Generate parquet files for parquet_data/polaris-data-53K.parquet 
+python scripts/data/jsonl2parquet.py --jsonl_file data/jsonl_data/polaris-data-53K.jsonl 
+```
+
+<!-- ### Optional: Temperature searching for diversity rollouts
+Temperature searching is highly recommended before each stage of training as suggested by the `diversity-based rollouts sampling` section in our blog. 
+
+You can *skip* the searching process and follow our settings for training `Qwen3-4B`, `Qwen3-1.7B`, and `Deepseek-R1-Distill-Qwen-7B`
+
+Run the following code for searching on your new model:
+```bash
+# the following code will provide the optimal training temperature for the model
+cd evaluation
+python search_optimal_temperature.py --start 0.6 --end 1.5 --step 0.05 --model /path/to/model --n 16 --new_tokens 50000 --output_dir /path/to/output_dir
+# after the searching process, run:
+python get_optimal_temperature.py  --output_dir /path/to/output_dir
+``` -->
+
+### Multi-stage training on single node
+The training scripts for `Qwen3-1.7B`, `Qwen3-4B`, `Deepseek-R1-Distill-Qwen-7B` are avaliable [here](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/scripts/train). You can run the scripts on a single node by:
+```bash
+ ###### stage1 ######
+./scripts/train/qwen3-4b/stage1.sh  --model /path/to/qwen3-4b --data_path parquet/stage1/qwen3-4b-s1.parquet --experiment_name qwen3-4b-stage1 (unique experiment id)
+
+# convert the checkpoint after stage1-training to hf model
+python verl/scripts/model_merger.py --local_dir /path/to/checkpoints/global_step_xxx/actor --target_dir checkpoints_hf/polarie-4b-stage1
+# optional: find the optimal temeprature for `checkpoints_hf/polarie-4b-stage1
+# optional: remove the easy samples. 
+python drop_easy_data.py --data_path parquet/stage1/qwen3-4b-s1.parquet --experiment_name qwen3-4b-stage1  --output parquet/stage2/qwen3-4b-s2.parquet.parquet
+ 
+ ###### stage2 ######
+ ./scripts/train/qwen3-4b/stage2.sh  --model checkpoints_hf/polarie-4b-stage1 --data_path parquet/stage2/qwen3-4b-s2.parquet --experiment_name qwen3-4b-stage2 
+
+ ###### stage3 ######
+# convert the checkpoint after stage1-training to hf model \ search for the optimal temeprature \ remove the easy samples 
+ ./scripts/train/qwen3-4b/stage2.sh  --model heckpoints_hf/polarie-4b-stage2  --data_path parquet/stage3/qwen3-4b-s3.parquet --experiment_name qwen3-4b-stage3
+```
+
+### Debug
+`Pdb` is not supported in Ray. In this codebase you can set `trainer.debug=True` and insert `breakpoint()` (instead of `pdb.set_trace()`) to debug.
+```python
+...
+batch = batch.repeat(repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True)
+breakpoint()
+batch = batch.union(gen_batch_output)
+...
+```
+```
+# open a new terminal and run:
+ray debug
+```
+
+### Multi-node training 
+To accelerate the training process, we recommend using at least 4 nodes.
+Our multi-node training is based on Ray.
+You can run `ray start --head` on the head node and `ray start --address=[RAY_ADDRESS]` on other nodes to start the Ray cluster. and run the training script on the head node. We also prepare a useful script which is **very easy** to start the training:
+
+```bash
+# On all nodes, run:
+python train_with_ray.py  --model /path/to/model --experiment_name [name] --n_nodes 4   --sh /path/to/training/script.sh --data_path /path/to/parquet/data --head (if head node)
+```
+
 
 ### Results 
 
@@ -166,6 +193,8 @@ Example inference
 | `qwen3-32B` | 81.4 | 72.9 | 44.2 | 66.7 | 92.4 |
 | `qwen3-4B` | 73.8 | 65.6 | 43.6 | 62.2 | 87.2 |
 | **`POLARIS-4B-Preview`** | **81.2** | **79.4** | **44.0** | **69.1** | **94.8** |
+| **`POLARIS-1.7B-Preview`** |  |  |  |  |  |
+
 
 
 ## Acknowledgements
