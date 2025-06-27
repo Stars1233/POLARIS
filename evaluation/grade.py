@@ -1,7 +1,6 @@
 import sys
-
-from utils import grade_answer_verl
-
+sys.path.append("..")
+from deepscaler.rewards.math_utils.utils import grade_answer_verl
 from transformers import AutoTokenizer
 
 
@@ -55,7 +54,7 @@ solve_none = 0
 solve_all = 0
 without_boxed = 0
 response_lengths = []
-print("Total data:", len(df), "Number of rollouts:", len(df["responses"][0]))
+print("Total data:", len(df), "Mean@", len(df["responses"][0]))
 for i in range(len(df)):
     responses = df["responses"][i]
     gt = df["reward_model"][i]["ground_truth"]
@@ -81,8 +80,8 @@ print("============ performance ===============")
 print("avg scores: ", sum(avg_scores) / len(avg_scores))
 print("============ other info ================")
 print("best score: ", sum(best) / len(best))
-print("solve none:", solve_none)
-print("solve all: ", solve_all)
+print("solve none:", solve_none, "/", len(df))
+print("solve all: ", solve_all, "/", len(df))
 print("distinct 4-gram: ", sum(diverse) / len(diverse))
 print("avg output length: ", sum(response_lengths) / len(response_lengths))
-print("format error rollouts: ", without_boxed / 960)
+print("format error rollouts: ", without_boxed, "/" , len(df)*len(df["responses"][0]))
