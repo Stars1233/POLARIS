@@ -145,7 +145,7 @@ python verl/scripts/model_merger.py --local_dir /path/to/checkpoints/global_step
 
 # You can follow our temperature setting but re-searching for the optimal temperature for  `checkpoints_hf/ckpt-4b-stage1` is a better approach.
 python search_optimal_temperature.py --start 0.6 --end 1.5 --step 0.05 --model /path/to/model --n 16 --new_tokens 50000 --output_dir /path/to/output_dir
-python get_optimal_temperature.py  --output_dir /path/to/output_dir
+# Then find the temperature that yields a diversity score similar to stage-1
 
 # You can use our provided data but drop the easy data based on your training process is a better approach.
 python drop_easy_data.py --data_path parquet/stage1/qwen3-4b-s1.parquet --experiment_name qwen3-4b-stage1  --output parquet/stage2/qwen3-4b-s2.parquet.parquet
