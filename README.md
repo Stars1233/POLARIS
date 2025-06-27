@@ -129,7 +129,7 @@ Run the following code for searching on your new model:
 ```bash
 # the following code will provide the optimal training temperature for the model
 cd evaluation
-python search_optimal_temperature.py --start 0.6 --end 1.5 --step 0.05 --model /path/to/model --n 16 --new_tokens 50000 --output_dir /path/to/output_dir
+python search_optimal_temperature.py --start 1.4 --end 1.6 --step 0.05 --model /path/to/model --n 16 --new_tokens 50000 --output_dir /path/to/output_dir
 python get_optimal_temperature.py  --output_dir /path/to/output_dir
 ``` -->
 
