@@ -15,13 +15,14 @@ parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--sh', type=str, help='the training script', default="scripts/xtemplate/run_deepscaler_7b_16k_ray.sh")
 parser.add_argument('--experiment_name', type=str, default="polaris-4b")
 parser.add_argument('--model', type=str, default="/path/to/qwen3-4b")
-parser.add_argument('--n_node', type=int, default=1)
+parser.add_argument('--n_nodes', type=int, default=1)
 parser.add_argument('--head', action="store_true")
+parser.add_argument('--data_path', type=str, default=None)
 args = parser.parse_args()
 import time
 import os
 
-n_nodes = args.n_node
+n_nodes = args.n_nodes
 
 if args.head:
     ip = ip_addresses[1]
@@ -34,7 +35,7 @@ if args.head:
         f.write(f"{ip}")
     print(start_cmd)
     os.system(start_cmd)
-    train_cmd = f"./{args.sh} --n_node {n_nodes} --experiment_name {args.experiment_name} --model {args.model} "
+    train_cmd = f"./{args.sh} --n_node {n_nodes} --experiment_name {args.experiment_name} --model {args.model} --data_path {args.data_path}"
     print(train_cmd)
     os.system(train_cmd)
 else:
