@@ -124,25 +124,26 @@ python scripts/data/jsonl2parquet.py --jsonl_file data/jsonl_data/polaris-data-5
 The training scripts for `Qwen3-1.7B`, `Qwen3-4B`, `Deepseek-R1-Distill-Qwen-7B` are avaliable [here](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/scripts/train). You can run the scripts on a single node by:
 ```bash
  ###### stage1 ######
+# stage1 training script
 ./scripts/train/qwen3-4b/stage1.sh  --model /path/to/qwen3-4b --data_path parquet/stage1/qwen3-4b-s1.parquet --experiment_name qwen3-4b-stage1 (unique experiment id)
 
  ###### stage2 ######
 # convert the checkpoint after stage1-training to hf model
 python verl/scripts/model_merger.py --local_dir /path/to/checkpoints/global_step_xxx/actor --target_dir checkpoints_hf/ckpt-4b-stage1
 
+# Then find the temperature that yields a diversity score similar to stage-1
 # You can follow our temperature setting but re-searching for the optimal temperature for  `checkpoints_hf/ckpt-4b-stage1` is a better approach.
 python search_optimal_temperature.py --start 1.4 --end 1.6 --step 0.05 --model /path/to/model
-# Then find the temperature that yields a diversity score similar to stage-1
 
 # You can use our provided data but drop the easy data based on your training process is a better approach.
-python drop_easy_data.py --data_path parquet/stage1/qwen3-4b-s1.parquet --experiment_name qwen3-4b-stage1  --output parquet/stage2/qwen3-4b-s2.parquet.parquet
+python drop_easy_data.py --data_path parquet/stage1/qwen3-4b-s1.parquet --experiment_name qwen3-4b-stage1  --output parquet/stage2/qwen3-4b-s2.parquet
 
-# stage2 training 
+# stage2 training script
 ./scripts/train/qwen3-4b/stage2.sh  --model checkpoints_hf/polarie-4b-stage1 --data_path parquet/stage2/qwen3-4b-s2.parquet --experiment_name qwen3-4b-stage2 
 
  ###### stage3 ######
 # convert the checkpoint after stage1-training to hf model \ search for the optimal temeprature \ remove the easy samples
-# stage3 training 
+# stage3 training script
 ./scripts/train/qwen3-4b/stage3.sh  --model heckpoints_hf/polarie-4b-stage2  --data_path parquet/stage3/qwen3-4b-s3.parquet --experiment_name qwen3-4b-stage3
 ```
 
