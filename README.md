@@ -156,7 +156,7 @@ python drop_easy_data.py --data_path parquet/stage1/qwen3-4b-s1.parquet --experi
  ###### stage3 ######
 # convert the checkpoint after stage1-training to hf model \ search for the optimal temeprature \ remove the easy samples
 # stage3 training 
-./scripts/train/qwen3-4b/stage2.sh  --model heckpoints_hf/polarie-4b-stage2  --data_path parquet/stage3/qwen3-4b-s3.parquet --experiment_name qwen3-4b-stage3
+./scripts/train/qwen3-4b/stage3.sh  --model heckpoints_hf/polarie-4b-stage2  --data_path parquet/stage3/qwen3-4b-s3.parquet --experiment_name qwen3-4b-stage3
 ```
 
 ### Debug
