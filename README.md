@@ -176,7 +176,9 @@ ray debug
 ### Multi-node training 
 To accelerate the training process, we recommend using at least 4 nodes.
 Our multi-node training is based on Ray.
-You can run `ray start --head` on the head node and `ray start --address=[RAY_ADDRESS]` on other nodes to start the Ray cluster. and run the training script on the head node. We also prepare a useful script which is **very easy** to start the training:
+You can run `ray start --head` on the head node and `ray start --address=[RAY_ADDRESS]` on other nodes to start the Ray cluster. 
+
+After starting the cluster，run the training script on the head node. We also prepare a useful script which is **very easy** to start the training without manually initializing Ray:
 
 ```bash
 # On all nodes, run:
