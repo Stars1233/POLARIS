@@ -46,7 +46,7 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 
 ## Running environment 
 ```bash
-cd Polaris
+cd POLARIS
 pip install -e ./verl 
 pip install -e ./
 pip install transformers==4.51.0
@@ -119,19 +119,6 @@ If your data is in `json` or `jsonl` format, please use the following cmd for co
 # Generate parquet files for parquet_data/polaris-data-53K.parquet 
 python scripts/data/jsonl2parquet.py --jsonl_file data/jsonl_data/polaris-data-53K.jsonl 
 ```
-
-<!-- ### Optional: Temperature searching for diversity rollouts
-Temperature searching is highly recommended before each stage of training as suggested by the `diversity-based rollouts sampling` section in our blog. 
-
-You can *skip* the searching process and follow our settings for training `Qwen3-4B`, `Qwen3-1.7B`, and `Deepseek-R1-Distill-Qwen-7B`
-
-Run the following code for searching on your new model:
-```bash
-# the following code will provide the optimal training temperature for the model
-cd evaluation
-python search_optimal_temperature.py --start 1.4 --end 1.6 --step 0.05 --model /path/to/model --n 16 --new_tokens 50000 --output_dir /path/to/output_dir
-python get_optimal_temperature.py  --output_dir /path/to/output_dir
-``` -->
 
 ### Multi-stage training on single node
 The training scripts for `Qwen3-1.7B`, `Qwen3-4B`, `Deepseek-R1-Distill-Qwen-7B` are avaliable [here](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/scripts/train). You can run the scripts on a single node by:
