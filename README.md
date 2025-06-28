@@ -46,7 +46,7 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 
 ## Running environment 
 ```bash
-cd POLARIS
+cd Polaris
 pip install -e ./verl 
 pip install -e ./
 pip install transformers==4.51.0
@@ -144,7 +144,7 @@ The training scripts for `Qwen3-1.7B`, `Qwen3-4B`, `Deepseek-R1-Distill-Qwen-7B`
 python verl/scripts/model_merger.py --local_dir /path/to/checkpoints/global_step_xxx/actor --target_dir checkpoints_hf/ckpt-4b-stage1
 
 # You can follow our temperature setting but re-searching for the optimal temperature for  `checkpoints_hf/ckpt-4b-stage1` is a better approach.
-python search_optimal_temperature.py --start 1.4 --end 1.6 --step 0.05 --model /path/to/model --n 16 --max_length 50000 --output_dir /path/to/output_dir
+python search_optimal_temperature.py --start 1.4 --end 1.6 --step 0.05 --model /path/to/model
 # Then find the temperature that yields a diversity score similar to stage-1
 
 # You can use our provided data but drop the easy data based on your training process is a better approach.

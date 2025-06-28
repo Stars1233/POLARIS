@@ -1,14 +1,16 @@
+#!/bin/bash
+
 set -x
 
 unset VLLM_ATTENTION_BACKEND
-
-#!/bin/bash
 
 NAME="polaris-4b"
 TEMP=1.4
 L=90000
 K=20
 N=32
+OUTPUT_DIR="evaluation/results"  # Add default output directory
+
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -36,19 +38,21 @@ while [[ $# -gt 0 ]]; do
             K="$2"
             shift 2
             ;;
+        --output)
+            OUTPUT_DIR="$2"
+            shift 2
+            ;;
     esac
 done
-
 echo "MODEL_PATH: $MODEL_PATH"
 echo "EXP NAME: $NAME"
 echo "N: $N"
-echo "TEMP: $TEMP"
-echo "L: $L"
-echo "K: $K"
+echo "Temperature: $TEMP"
+echo "max-length: $L"
+echo "top-K: $K"
 
-OUTPUT_DIR="evaluation/results"  # Add default output directory
 # Echo the values for verification
-echo "Output File: ${OUTPUT_DIR}/${NAME}/aime25-${TEMP}-${N}-${L}-${K}.parquet"
+echo "Output file: ${OUTPUT_DIR}/${NAME}/aime25-${TEMP}-${N}-${L}-${K}.parquet"
 
 python3 -m verl.trainer.main_generation \
     trainer.nnodes=1 \
