@@ -46,7 +46,7 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 
 ## Running environment 
 ```bash
-cd Polaris
+cd POLARIS
 pip install -e ./verl 
 pip install -e ./
 pip install transformers==4.51.0
