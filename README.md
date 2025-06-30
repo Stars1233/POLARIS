@@ -112,9 +112,10 @@ python evaluation/grade.py --file_name evaluation/results/aime24-reproduced.parq
 
 ## Training
 ### Data preparation
+We provide the [parquet data](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/parquet) for training `Qwen3-4B`. 
+
 The [training data](https://huggingface.co/datasets/POLARIS-Project/Polaris-Dataset-53K) used in this work is filtered from [DeepScaleR-dataset-40K](https://huggingface.co/datasets/agentica-org/DeepScaleR-Preview-Dataset) and [AReaL-dataset-106K](https://huggingface.co/datasets/inclusionAI/AReaL-boba-Data).
-We provide the [parquet data](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/parquet) which can be directly used in training. 
-If your data is in `json` or `jsonl` format, please use the following cmd for converting it into the parquet format. 
+To process your json or jsonl data, use the following command to convert it into Parquet format:
 ```bash
 # Generate parquet files for parquet_data/polaris-data-53K.parquet 
 python scripts/data/jsonl2parquet.py --jsonl_file data/jsonl_data/polaris-data-53K.jsonl 
