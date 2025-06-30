@@ -122,7 +122,10 @@ python scripts/data/jsonl2parquet.py --jsonl_file data/jsonl_data/polaris-data-5
 ```
 
 ### Multi-stage training on single node
-The training scripts for `Qwen3-1.7B`, `Qwen3-4B`, `Deepseek-R1-Distill-Qwen-7B` are avaliable [here](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/scripts/train). You can run the scripts on a single node by:
+The training scripts for `Qwen3-1.7B`, `Qwen3-4B`, `Deepseek-R1-Distill-Qwen-7B` are avaliable [here](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/scripts/train). 
+Please set the `"max_position_embeddings": 131072` in `config.json` before training. 
+You can run the scripts on a single node by:
+
 ```bash
  ###### stage1 ######
 # stage1 training script
