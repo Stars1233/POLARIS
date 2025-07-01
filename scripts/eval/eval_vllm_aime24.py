@@ -9,7 +9,7 @@ import pandas as pd
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model_path", type=str, default="/path/to/model")
+parser.add_argument("--model", type=str, default="/path/to/model")
 parser.add_argument("--t", type=float, default=1.4)
 parser.add_argument("--k", type=int, default=20)
 parser.add_argument("--n", type=int, default=32)
@@ -22,7 +22,7 @@ NAME = args.experiment_name
 N = args.n  # number of duplications per prompt
 AIME_PATH = "evaluation/benchmarks/aime24.parquet"
 assert os.path.exists(AIME_PATH), f"{AIME_PATH} does not exist"
-MODEL_PATH = args.model_path
+MODEL_PATH = args.model
 MAX_TOKENS = args.max_length
 TEMPERATURE = args.t
 TOP_P = 1.0
