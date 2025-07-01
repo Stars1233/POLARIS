@@ -28,7 +28,8 @@ TEMPERATURE = args.t
 TOP_P = 1.0
 TOP_K = args.k
 OUT_PATH = f"{args.output}/{NAME}/aime25-{TEMPERATURE}-{N}-{MAX_TOKENS}-{TOP_K}.jsonl"
-
+folder = os.path.dirname(OUT_PATH)
+os.makedirs(folder, exist_ok=True)
 
 def load_samples(filepath):
     """Load samples and create a prompt for each sample."""
