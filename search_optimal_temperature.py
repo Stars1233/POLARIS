@@ -28,7 +28,7 @@ print( "You are going to search:",  temperatures)
 for temperature in temperatures:
     temperature = round(temperature, 2)
     print("Testing the model with temperature ", temperature)
-    cmd = f"./scripts/eval/eval_model_aime24.sh --model {args.model} --experiment_name {name} --n {args.n} --max_length {args.max_length} --t {temperature} --output {args.output_dir}  --k -1"
+    cmd = f"python scripts/eval/eval_vllm_aime24.py --model {args.model} --experiment_name {name} --n {args.n} --max_length {args.max_length} --t {temperature} --output {args.output_dir}  --k -1"
     print(cmd)
     os.system(cmd)
     break
