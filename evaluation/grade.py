@@ -2,7 +2,7 @@ import sys
 sys.path.append("..")
 from deepscaler.rewards.math_utils.utils import grade_answer_verl
 from transformers import AutoTokenizer
-
+import json
 
 def get_len(seq):
     return len(tokenizer.encode(seq))
@@ -10,10 +10,10 @@ def get_len(seq):
 
 def get_diverse_score(sequences, n=4):
     """
-    计算给定多个序列的 Distinct-n 分数。
+    calculate the Distinct-n score。
 
-    sequences: List[str] 要评估的序列列表
-    n: int, n-gram 阶数，默认为 1
+    sequences: List[str] response list
+    n: int, n-gram default=4
     """
     distinct_ngrams = set()
     total_ngrams = 0
@@ -30,6 +30,19 @@ def get_diverse_score(sequences, n=4):
     return len(distinct_ngrams) / total_ngrams if total_ngrams > 0 else 0
 
 
+
+def process_jsonl_file(file_name):
+    results = [{"gt": None, "responses":[]} for i in range(30)]
+    with open(file_name) as f:
+        for line in f:
+            data = json.loads(line)
+            id = int(data["example_id"])
+            gt = data["answer"]
+            response = data["response"]
+            results[id]["gt"] = gt
+            results[id]["responses"].append(response)
+    return results
+
 import argparse
 import pandas as pd
 
@@ -38,6 +51,7 @@ parser.add_argument("--file_name", type=str, help='Path to load the dataset json
 parser.add_argument("--calc_length", action="store_true")
 args = parser.parse_args()
 file_name = args.file_name
+
 if args.calc_length:
     tokenizer = AutoTokenizer.from_pretrained("/path/to/the/model")
 else:
@@ -45,19 +59,29 @@ else:
 
 diverse = []
 avg_scores = []
-avg_scores2 = []
 
-df = pd.read_parquet(file_name)
+if "parquet" in file_name:
+    df = pd.read_parquet(file_name)
+    num_pred = len(df["responses"][0])
+else:
+    df = process_jsonl_file(file_name)
+    num_pred = len(df[0]["responses"])
+
 best = []
 bad_samples = 0
 solve_none = 0
 solve_all = 0
 without_boxed = 0
 response_lengths = []
-print("Total data:", len(df), "Mean@", len(df["responses"][0]))
+
 for i in range(len(df)):
-    responses = df["responses"][i]
-    gt = df["reward_model"][i]["ground_truth"]
+    if "jsonl" in file_name:
+        responses = df[i]["responses"]
+        gt = df[i]["gt"]
+    else:
+        responses = df["responses"][i]
+        gt = df["reward_model"][i]["ground_truth"]
+
     responses_list = [str(response) for response in responses]
     if tokenizer:
         response_lengths += [get_len(response) for response in responses_list]
@@ -77,11 +101,15 @@ for i in range(len(df)):
         solve_all += 1
 
 print("============ performance ===============")
-print("avg scores: ", sum(avg_scores) / len(avg_scores))
+print(f"Mean@{num_pred}: ", sum(avg_scores) / len(avg_scores))
+print("============ diversity =================")
+print("distinct 4-gram: ", sum(diverse) / len(diverse))
+
 print("============ other info ================")
 print("best score: ", sum(best) / len(best))
 print("solve none:", solve_none, "/", len(df))
 print("solve all: ", solve_all, "/", len(df))
-print("distinct 4-gram: ", sum(diverse) / len(diverse))
 print("avg output length: ", sum(response_lengths) / len(response_lengths))
-print("format error rollouts: ", without_boxed, "/" , len(df)*len(df["responses"][0]))
+print("format error rollouts: ", without_boxed, "/" , len(df)*num_pred)
+
+
