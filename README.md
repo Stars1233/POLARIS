@@ -102,11 +102,7 @@ print(f"***QUESTION***:\n{question}\n***GROUND TRUTH***:\n{answer}\n***MODEL OUT
 ## Evaluation
 We recommend using a higher temperature for decoding than that suggested for Qwen3 (0.6 → 1.4). However, it is not advisable to exceed the temperature used during training. For POLARIS, a longer response length (> 64K) should be utilized to prevent performance degradation from truncation, which could otherwise cause its performance to fall below that of Qwen3. All other settings remain the same. 
 ```bash
-##### Testing with  pure VLLM  #####
-python scripts/eval/eval_model_aime24.py --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 
-python scripts/eval/eval_model_aime25.py --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 or 1.45
-
-##### Testing with VeRL (slow) #####
+##### Testing with VeRL #####
 ./scripts/eval/eval_model_aime24.sh --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 
 ./scripts/eval/eval_model_aime25.sh --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 or 1.45
 ```
