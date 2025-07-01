@@ -22,7 +22,7 @@ def process_jsonl(jsonl_path):
                 remove_set[indice].append(score)
    # Compute average score for each index and filter those with avg > 0.9
     result_indices = set()
-    for indice, scores in index_scores.items():
+    for indice, scores in remove_set.items():
         avg_score = sum(scores) / len(scores)
         if avg_score > 0.9:
             result_indices.add(indice)
