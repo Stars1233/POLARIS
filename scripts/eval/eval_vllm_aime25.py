@@ -1,155 +1,186 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Batch-inference script for AIME-25:
+• N = --n stochastic roll-outs per prompt, each with a unique, random seed
+• 32 roll-outs are evenly divided over 8 GPUs (4 seeds / GPU)
+• Each GPU loads the model only once and iterates over its own seed list
+• All original global variables & argparse flags are kept unchanged
+"""
 import os
 import json
 import re
+import random
 import concurrent.futures
+from pathlib import Path
+
+import pandas as pd
 from tqdm import tqdm
 from vllm import LLM, SamplingParams
-import pandas as pd
-# Configuration
 import argparse
 
+# --------------------------------------------------------------------------- #
+#                               Argument parser                               #
+# --------------------------------------------------------------------------- #
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str, default="/path/to/model")
 parser.add_argument("--t", type=float, default=1.4)
 parser.add_argument("--k", type=int, default=20)
-parser.add_argument("--n", type=int, default=32)
+parser.add_argument("--n", type=int, default=32)          # roll-outs / prompt
 parser.add_argument("--max_length", type=int, default=90000)
 parser.add_argument("--experiment_name", type=str, default="Polaris-4B")
 parser.add_argument("--output", type=str, default="evaluation/results")
 args = parser.parse_args()
 
-NAME = args.experiment_name
-N = args.n  # number of duplications per prompt
-AIME_PATH = "evaluation/benchmarks/aime25.parquet"
-assert os.path.exists(AIME_PATH), f"{AIME_PATH} does not exist"
-MODEL_PATH = args.model
-MAX_TOKENS = args.max_length
+# --------------------------------------------------------------------------- #
+#                   Original global constants / variables                     #
+# --------------------------------------------------------------------------- #
+NAME        = args.experiment_name
+N           = args.n                          # roll-outs per prompt
+AIME_PATH   = "evaluation/benchmarks/aime25.parquet"
+assert Path(AIME_PATH).exists(), f"{AIME_PATH} does not exist"
+MODEL_PATH  = args.model
+MAX_TOKENS  = args.max_length
 TEMPERATURE = args.t
-TOP_P = 1.0
-TOP_K = args.k
-OUT_PATH = f"{args.output}/{NAME}/aime25-{TEMPERATURE}-{N}-{MAX_TOKENS}-{TOP_K}.jsonl"
-folder = os.path.dirname(OUT_PATH)
-os.makedirs(folder, exist_ok=True)
+TOP_P       = 1.0
+TOP_K       = args.k
+OUT_PATH    = Path(
+    f"{args.output}/{NAME}/aime25-{TEMPERATURE}-{N}-{MAX_TOKENS}-{TOP_K}.jsonl"
+)
+OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-def load_samples(filepath):
-    """Load samples and create a prompt for each sample."""
-    samples = []
+# --------------------------------------------------------------------------- #
+#                               Helper functions                              #
+# --------------------------------------------------------------------------- #
+def load_samples(filepath: str):
+    """Read parquet file and return a list of prompts (no duplication)."""
     df = pd.read_parquet(filepath)
-    for i in range(len(df)):
-        sample = {"example_id": i,"prompt": df['prompt'][i][0]['content'], "answer": df['reward_model'][i]['ground_truth']}
-        samples.append(sample)
-    print(f"Total samples: {len(samples)}")
+    samples = [
+        {
+            "example_id": i,
+            "prompt": df.at[i, "prompt"][0]["content"],
+            "answer": df.at[i, "reward_model"]["ground_truth"],
+        }
+        for i in range(len(df))
+    ]
+    print(f"Total unique samples: {len(samples)}")
     return samples
 
 
-def extract_boxed_answer(text):
+def extract_boxed_answer(text: str):
+    """Extract the last boxed{…} string from a LaTeX-like answer."""
     answers = []
-    for piece in text.split('boxed{')[1:]:
+    for piece in text.split("boxed{")[1:]:
         n = 0
-        for i in range(len(piece)):
-            if piece[i] == '{':
+        for i, ch in enumerate(piece):
+            if ch == "{":
                 n += 1
-            elif piece[i] == '}':
+            elif ch == "}":
                 n -= 1
                 if n < 0:
-                    if i + 1 < len(piece) and piece[i + 1] == '%':
-                        answers.append(piece[: i + 1])
-                    else:
-                        answers.append(piece[:i])
+                    answers.append(piece[: i] if (i + 1 == len(piece) or piece[i + 1] != "%") else piece[: i + 1])
                     break
     return answers[-1] if answers else None
 
 
 def evaluate(samples):
-    """Evaluate samples by comparing extracted answers with the ground truth."""
+    """Compute Pass@1 on the first roll-out of every prompt."""
+    first_rollouts = {}
+    for s in samples:
+        eid = s["example_id"]
+        first_rollouts.setdefault(eid, s)
     correct = 0
-    for sample in samples:
-        response = sample.get("response", "")
-        pred = extract_boxed_answer(response)
+    for s in first_rollouts.values():
+        pred = extract_boxed_answer(s.get("response", ""))
         if pred is not None:
             try:
-                if pred and (int(pred) == int(sample["answer"])):
+                if int(pred) == int(s["answer"]):
                     correct += 1
             except ValueError:
                 pass
-    accuracy = correct / len(samples)
-    print(f"Pass@1: {accuracy}")
-    return accuracy
+    acc = correct / len(first_rollouts)
+    print(f"Pass@1: {acc:.4f}")
+    return acc
 
 
-def split_list(lst, n):
-    """
-    Split list lst into n contiguous chunks.
-    Returns a list of tuples (start_idx, chunk, worker_id)
-    """
-    chunks = []
-    total = len(lst)
-    chunk_size, remainder = divmod(total, n)
-    start = 0
-    for worker_id in range(n):
-        # Distribute the remainder one-by-one to the first few chunks.
-        extra = 1 if worker_id < remainder else 0
-        end = start + chunk_size + extra
-        chunks.append((start, lst[start:end], worker_id))
-        start = end
+def split_seeds(seeds: list[int], num_workers: int):
+    """Round-robin split of the seed list into num_workers chunks."""
+    chunks = [[] for _ in range(num_workers)]
+    for idx, s in enumerate(seeds):
+        chunks[idx % num_workers].append(s)
     return chunks
 
 
-def worker_process(args):
+# --------------------------------------------------------------------------- #
+#                           Worker process (one GPU)                          #
+# --------------------------------------------------------------------------- #
+def worker_process(args_tuple):
     """
-    Worker process to run vLLM inference on a chunk of samples.
-    Each worker sets CUDA_VISIBLE_DEVICES to the assigned GPU.
+    Each worker runs on a single GPU:
+
+    args_tuple = (samples, seed_list, gpu_id)
     """
-    start_idx, chunk, gpu_id = args
+    samples, seed_list, gpu_id = args_tuple
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
-    print(f"[Worker on GPU {gpu_id}] Processing {len(chunk)} samples...")
+    print(f"[GPU {gpu_id}] seeds={seed_list} | loading model...", flush=True)
 
     llm = LLM(model=MODEL_PATH, enforce_eager=True)
-    sampling_params = SamplingParams(temperature=TEMPERATURE, top_p=TOP_P, top_k=TOP_K, max_tokens=MAX_TOKENS)
-    messages = [
-        [{"role": "user", "content": sample["prompt"]}]
-        for sample in chunk
-    ]
-    responses = llm.chat(messages, sampling_params, use_tqdm=True)
-    responses = [r.outputs[0].text for r in responses]
-    return start_idx, responses
+    results = []
+
+    for seed in seed_list:
+        sampling = SamplingParams(
+            temperature=TEMPERATURE,
+            top_p=TOP_P,
+            top_k=TOP_K,
+            max_tokens=MAX_TOKENS,
+            seed=seed,
+        )
+        messages = [[{"role": "user", "content": s["prompt"]}] for s in samples]
+        outputs = llm.chat(messages, sampling, use_tqdm=True)
+        for sample, out in zip(samples, outputs):
+            results.append(
+                {
+                    "example_id": sample["example_id"],
+                    "prompt": sample["prompt"],
+                    "answer": sample["answer"],
+                    "seed": seed,
+                    "response": out.outputs[0].text,
+                }
+            )
+    return results
 
 
+# --------------------------------------------------------------------------- #
+#                                   main                                      #
+# --------------------------------------------------------------------------- #
 def main():
-    # 1. Load samples and duplicate them K times.
+    # 1. Load original prompts
     samples = load_samples(AIME_PATH)
-    samples = samples * N
-    total_samples = len(samples)
-    print(f"Total samples after duplication: {total_samples}")
 
-    # 2. Split samples into 8 chunks (one per GPU/worker).
+    # 2. Generate N distinct random seeds and split across 8 GPUs
+    random_seeds = random.sample(range(2**31 - 1), N)  # unique & shuffled
     num_workers = 8
-    chunks = split_list(samples, num_workers)
+    seed_chunks = split_seeds(random_seeds, num_workers)
 
-    # 3. Launch 8 worker processes to run inference via vLLM.
-    results = [None] * total_samples
-    with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as executor:
-        futures = [executor.submit(worker_process, args) for args in chunks]
-        for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Processing samples"):
-            start_idx, responses = future.result()
-            results[start_idx:start_idx + len(responses)] = responses
+    # 3. Launch workers
+    all_results = []
+    args_list = [(samples, seed_chunks[gid], gid) for gid in range(num_workers)]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as ex:
+        futures = [ex.submit(worker_process, tup) for tup in args_list]
+        for fut in tqdm(concurrent.futures.as_completed(futures),
+                        total=len(futures), desc="GPU workers"):
+            all_results.extend(fut.result())
 
-    print(f"Total responses collected: {len(results)}")
+    print(f"Total generations collected: {len(all_results)}")  # len(samples) * N
 
-    # 4. Attach responses to the corresponding samples.
-    for sample, response in zip(samples, results):
-        sample["response"] = response
-
-    # 5. Save the outputs.
-    with open(OUT_PATH, 'w') as out_file:
-        for sample in samples:
-            out_file.write(json.dumps(sample) + "\n")
+    # 4. Save to disk
+    with OUT_PATH.open("w", encoding="utf-8") as f:
+        for item in all_results:
+            f.write(json.dumps(item, ensure_ascii=False) + "\n")
     print(f"Saved results to {OUT_PATH}")
 
-    # 6. Evaluate accuracy.
-    with open(OUT_PATH, 'r') as f:
-        samples = [json.loads(line) for line in f]
-    evaluate(samples)
+    # 5. Optional evaluation
+    evaluate(all_results)
 
 
 if __name__ == "__main__":
