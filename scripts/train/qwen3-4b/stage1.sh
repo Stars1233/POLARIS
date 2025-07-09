@@ -76,7 +76,7 @@ python3 -m verl.trainer.main_ppo \
     algorithm.kl_ctrl.kl_coef=0.001 \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \
-    trainer.project_name='Polaris-Reproduce-4B' \
+    trainer.project_name='Polaris-Reproduce-4b' \
     trainer.experiment_name=$EXPERIMENT_NAME \
     trainer.val_before_train=False \
     trainer.n_gpus_per_node=8 \
@@ -87,7 +87,6 @@ python3 -m verl.trainer.main_ppo \
     trainer.test_freq=10 \
     trainer.default_hdfs_dir=null \
     trainer.total_epochs=30 "${@:1}"
-
 
 
 # Echo the command for verification
