@@ -34,11 +34,13 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 
 
 ## 🔥Releases
-<strong>[2025/07/10]</strong>
-- 🤗 **[Polaris-1.7B-Preview](https://huggingface.co/POLARIS-Project/Polaris-1.7B-Preview)**  fine-tuned from `Qwen3-1.7B` (500 steps) with our open-source codebase.  
-  • **AIME24:** 66.9 (+18.6)  
-  • **AIME25:** 53.0 (+16.2)
-- 📔 Wandb logs are available [here](https://wandb.ai/cxan23-the-university-of-hong-kong/Polaris-Reproduce-1.7B/?nw=nwusercxan23).
+**[2025-07-10]**
+
+- 🤗 **[Polaris-1.7B-Preview](https://huggingface.co/POLARIS-Project/Polaris-1.7B-Preview)** fine-tuned from `Qwen3-1.7B` for 500 steps with our open-source codebase.
+  - **AIME24:** 66.9 (+18.6) & **AIME25:** 53.0 (+16.2)
+  - **Training scripts:** [`scripts/train/qwen3-1.7b`](https://github.com/ChenxinAn-fdu/POLARIS/tree/main/scripts/train/qwen3-1.7b)  
+  - **Data:** [`polaris-data-53K.parquet`](https://github.com/ChenxinAn-fdu/POLARIS/blob/main/parquet/stage1/polaris-data-53K.parquet)  
+  - **Training logs:**  [wandb](https://wandb.ai/cxan23-the-university-of-hong-kong/Polaris-Reproduce-1.7B/?nw=nwusercxan23).
 - ⌨️ Polaris-Coder is coming soon. Stay tuned!
 
 <strong>[2025/06/20]</strong>
