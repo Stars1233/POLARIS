@@ -34,9 +34,11 @@ This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and 
 
 
 ## 🔥Releases
-<strong>[2025/06/27]</strong>
-- 🌌 Full training code and scripts are available. 
-- 🤗 We are training a smaller model `Qwen3-1.7B` with the open-source codebase. The training logs will be updated to enhance reproducibility.
+<strong>[2025/07/10]</strong>
+- 🤗 **[Polaris-1.7B-Preview](https://huggingface.co/POLARIS-Project/Polaris-1.7B-Preview)**  fine-tuned from `Qwen3-1.7B` (500 steps) with our open-source codebase.  
+  • **AIME24:** 66.9 (+18.6)  
+  • **AIME25:** 53.0 (+16.2)
+- 📔 Wandb logs are available [here]().
 - ⌨️ Polaris-Coder is coming soon. Stay tuned!
 
 <strong>[2025/06/20]</strong>
@@ -187,6 +189,9 @@ python train_with_ray.py  --model /path/to/model --experiment_name [name] --n_no
 
 | **Models** | **AIME24 avg@32** | **AIME25 avg@32** | **Minerva Math avg@4** | **Olympiad Bench avg@4** | **AMC23  avg@8** |
 | --- | --- | --- | --- | --- | --- |
+| DeepScaleR-1.5B | 43.1 | 27.2 | 34.6 | 40.7 | 50.6 |
+| Qwen3-1.7B | 48.3 | 36.8 | 34.9 | 55.1 | 75.6 |
+| **`POLARIS-1.7B-Preview`** | **66.9** | **53.0** | **38.9** | **63.8** | **85.8** |
 | `Deepseek-R1-Distill-Qwen-7B` | 55.0 | 39.7 | 36.7 | 56.8 | 81.9 |
 | `AReal-boba-RL-7B` | 61.9 | 48.3 | 39.5 | 61.9 | 86.4 |
 | `Skywork-OR1-7B-Math` | 69.8 | 52.3 | **40.8** | 63.2 | 85.3 |
@@ -195,8 +200,6 @@ python train_with_ray.py  --model /path/to/model --experiment_name [name] --n_no
 | `qwen3-32B` | 81.4 | 72.9 | 44.2 | 66.7 | 92.4 |
 | `qwen3-4B` | 73.8 | 65.6 | 43.6 | 62.2 | 87.2 |
 | **`POLARIS-4B-Preview`** | **81.2** | **79.4** | **44.0** | **69.1** | **94.8** |
-| **`POLARIS-1.7B-Preview`** |  |  |  |  |  |
-
 
 
 ## Acknowledgements
