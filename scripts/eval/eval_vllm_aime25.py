@@ -83,25 +83,6 @@ def extract_boxed_answer(text: str):
     return answers[-1] if answers else None
 
 
-def evaluate(samples):
-    """Compute Pass@1 on the first roll-out of every prompt."""
-    first_rollouts = {}
-    for s in samples:
-        eid = s["example_id"]
-        first_rollouts.setdefault(eid, s)
-    correct = 0
-    for s in first_rollouts.values():
-        pred = extract_boxed_answer(s.get("response", ""))
-        if pred is not None:
-            try:
-                if int(pred) == int(s["answer"]):
-                    correct += 1
-            except ValueError:
-                pass
-    acc = correct / len(first_rollouts)
-    print(f"Pass@1: {acc:.4f}")
-    return acc
-
 
 def split_seeds(seeds: list[int], num_workers: int):
     """Round-robin split of the seed list into num_workers chunks."""
@@ -179,8 +160,6 @@ def main():
             f.write(json.dumps(item, ensure_ascii=False) + "\n")
     print(f"Saved results to {OUT_PATH}")
 
-    # 5. Optional evaluation
-    evaluate(all_results)
 
 
 if __name__ == "__main__":
