@@ -27,6 +27,7 @@ By training with open-source data and academic-grade resources, Polaris elevates
 
 This work is done as part of the [HKU NLP Group](https://hkunlp.github.io/) and [Bytedance Seed](https://seed.bytedance.com/). Our training and evaluation codebase is built on [Verl](https://github.com/volcengine/verl). To foster progress in scaling RL on advanced reasoning models, we are open‐sourcing our complete dataset, code, and training details for the research community.
 
+RL training for the 4B model requires 10 days on 32 H800 GPUs, using a batch size of 128, a rollout size of 8.
 
 <div align="center">
 <img src="figs/aime25.png" width="80%" />
