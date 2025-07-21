@@ -107,17 +107,17 @@ print(f"***QUESTION***:\n{question}\n***GROUND TRUTH***:\n{answer}\n***MODEL OUT
 ## Evaluation
 We recommend using a higher temperature for decoding than that suggested for Qwen3 (0.6 → 1.4). However, it is not advisable to exceed the temperature used during training. For POLARIS, a longer response length (> 64K) should be utilized to prevent performance degradation from truncation, which could otherwise cause its performance to fall below that of Qwen3. All other settings remain the same. 
 ```bash
-##### Testing with vllm (faster) #####
+##### Testing with vllm (faster); Output: jsonl file #####
 python scripts/eval/eval_vllm_aime24.py --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 
 python scripts/eval/eval_vllm_aime25.py --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 or 1.45
 
-##### Testing with VeRL #####
+##### Testing with VeRL; Output: parquet file #####
 ./scripts/eval/eval_model_aime24.sh --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 
 ./scripts/eval/eval_model_aime25.sh --model /path/to/model --n 32 --max_length 90000 --k 20 --t 1.4 or 1.45
 ```
 **Grade the outputs📊**:
 ```bash
-python evaluation/grade.py --file_name evaluation/results/aime24-reproduced.parquet # replace with your output file
+python evaluation/grade.py --file_name evaluation/results/aime24-reproduced.parquet or jsonl file # replace with your output file
 ```
 
 ## Training
@@ -153,12 +153,12 @@ python search_optimal_temperature.py --start 1.4 --end 1.6 --step 0.05 --model /
 python drop_easy_data.py --data_path parquet/stage1/qwen3-4b-s1.parquet --experiment_name qwen3-4b-stage1  --output parquet/stage2/qwen3-4b-s2.parquet
 
 # stage2 training script
-./scripts/train/qwen3-4b/stage2.sh  --model checkpoints_hf/polarie-4b-stage1 --data_path parquet/stage2/qwen3-4b-s2.parquet --experiment_name qwen3-4b-stage2 
+./scripts/train/qwen3-4b/stage2.sh  --model checkpoints_hf/ckpt-4b-stage1 --data_path parquet/stage2/qwen3-4b-s2.parquet --experiment_name qwen3-4b-stage2 
 
  ###### stage3 ######
 # convert the checkpoint after stage1-training to hf model \ search for the optimal temeprature \ remove the easy samples
 # stage3 training script
-./scripts/train/qwen3-4b/stage3.sh  --model heckpoints_hf/polarie-4b-stage2  --data_path parquet/stage3/qwen3-4b-s3.parquet --experiment_name qwen3-4b-stage3
+./scripts/train/qwen3-4b/stage3.sh  --model heckpoints_hf/ckpt-4b-stage2  --data_path parquet/stage3/qwen3-4b-s3.parquet --experiment_name qwen3-4b-stage3
 ```
 
 ### Debug
