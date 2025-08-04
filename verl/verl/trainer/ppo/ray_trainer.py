@@ -1031,7 +1031,6 @@ class RayPPOTrainer:
                     batch.meta_info["global_token_num"] = torch.sum(batch.batch["attention_mask"], dim=-1).tolist()
 
                     with _timer("reward", timing_raw):
-                        reward_tensor, reward_extra_infos_dict = compute_reward(batch, self.reward_fn)
                         batch.batch["token_level_scores"] = reward_tensor
 
                     # recompute old_log_probs
