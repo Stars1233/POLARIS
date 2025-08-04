@@ -1021,7 +1021,8 @@ class RayPPOTrainer:
                             continue
 
                     batch.batch["response_mask"] = compute_response_mask(batch)
-                    
+                    batch.batch["token_level_scores"] = reward_tensor
+
                     # balance the number of valid tokens on each dp rank.
                     # Note that this breaks the order of data inside the batch.
                     # Please take care when you implement group based adv computation such as GRPO and rloo
@@ -1030,8 +1031,6 @@ class RayPPOTrainer:
                     # compute global_valid tokens
                     batch.meta_info["global_token_num"] = torch.sum(batch.batch["attention_mask"], dim=-1).tolist()
 
-                    with _timer("reward", timing_raw):
-                        batch.batch["token_level_scores"] = reward_tensor
 
                     # recompute old_log_probs
                     with _timer("old_log_prob", timing_raw):
