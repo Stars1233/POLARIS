@@ -6,7 +6,7 @@ import pandas as pd
 from verl.utils.hdfs_io import copy, makedirs
 from verl.utils.reward_score.math import last_boxed_only_string, remove_boxed
 
-from deepscaler.data.utils import load_dataset
+# from deepscaler.data.utils import load_dataset
 from deepscaler.data.dataset_types import TrainDataset, TestDataset
 
 
@@ -102,8 +102,8 @@ if __name__ == '__main__':
         train_dataset = load_dataset(train_datasets[0])
 
     # test_datasets = [TestDataset.AIME, TestDataset.AMC, TestDataset.MATH, TestDataset.MINERVA, TestDataset.OLYMPIAD_BENCH]
-    test_datasets = []    
-    test_datasets_data = [load_dataset(d) for d in test_datasets]
+    test_datasets = []
+    # test_datasets_data = [load_dataset(d) for d in test_datasets]
 
     # Process training data
     train_data: List[Dict[str, Any]] = []
@@ -114,18 +114,18 @@ if __name__ == '__main__':
             train_data.append(processed_example)
 
     # Process and save each test dataset separately
-    for test_dataset, test_data_list in zip(test_datasets, test_datasets_data):
-        test_data: List[Dict[str, Any]] = []
-        process_fn = make_map_fn('test')
-        for idx, example in enumerate(test_data_list):
-            processed_example = process_fn(example, idx)
-            if processed_example is not None:
-                test_data.append(processed_example)
-
-        dataset_name = test_dataset.value.lower()
-        test_df = pd.DataFrame(test_data)
-        test_df.to_parquet(os.path.join(local_dir, f'{dataset_name}.parquet'))
-        print(f"{dataset_name} test data size:", len(test_data))
+    # for test_dataset, test_data_list in zip(test_datasets, test_datasets_data):
+    #     test_data: List[Dict[str, Any]] = []
+    #     process_fn = make_map_fn('test')
+    #     for idx, example in enumerate(test_data_list):
+    #         processed_example = process_fn(example, idx)
+    #         if processed_example is not None:
+    #             test_data.append(processed_example)
+    #
+    #     dataset_name = test_dataset.value.lower()
+    #     test_df = pd.DataFrame(test_data)
+    #     test_df.to_parquet(os.path.join(local_dir, f'{dataset_name}.parquet'))
+    #     print(f"{dataset_name} test data size:", len(test_data))
 
     # Save training dataset
     print("train data size:", len(train_data))
